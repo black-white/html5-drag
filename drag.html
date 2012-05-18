@@ -1,0 +1,98 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="all" />
+	<meta name="keywords" content="" />
+	<meta name="description" content="" />
+	<title>html5--托拽上传简单版</title>
+	<style type="text/css">
+		.wrap{width:960px;margin:0 auto;}
+		.wrap h2{height:40px;line-height:40px;}
+		.left{float:left;width:300px;}
+		.drag_box{height:300px;border:3px solid #cecece;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;}
+		.right{float:right;width:550px;}
+		.drag_list ul li{list-style:none;position:relative;line-height:30px;padding-left:23px;counter-increment:index;}
+		.drag_list ul li:before{position:absolute;content:counter(index);left:0;top:5px;width:20px;height:20px;line-height:20px;text-align:center;background:#72CFEF;color:#fff;
+			border-radius:50%;-webkit-border-radius:50%;-moz-border-radius:50%;
+}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="left">
+			<h2>您可以托动文件进来：</h2>
+			<div class="drag_box"></div>
+		</div>
+		<div class="right">
+			<h2>您托进来的文件：</h2>
+			<div class="drag_list">
+				<ul></ul>
+			</div>
+		</div>
+	</div>
+<script type="text/javascript">
+	function bind(obj,fn){
+		return function(){
+			return fn.apply(obj,arguments);
+		}
+	};
+	function drag(){
+		if(window.FileReader){
+			this.box=document.querySelector('.wrap .drag_box');
+			this.list=document.querySelector('.wrap .drag_list');
+			this.bindtip=bind(this,this.tip);
+			this.bindinit=bind(this,this.init);
+			this.box.addEventListener('dragenter',this.bindtip,false);
+			this.box.addEventListener('dragover',function(e){
+				e.stopPropagation();
+	     			e.preventDefault();
+			},false);
+			this.box.addEventListener('drop',this.bindinit,false);
+			this.box.addEventListener('dragleave',function(){
+				this.style.backgroundColor='#fff';
+			},false)
+		}else{
+			alert('换游览器吧')
+		}
+	}
+	drag.prototype={
+		init:function(e){
+			e.stopPropagation();
+			e.preventDefault();//for ff
+			var files=e.dataTransfer.files;//托放文件集合
+			this.box.style.backgroundColor='#fff';
+			for(var i=0;i<files.length;i++){
+				var isImg=files[i].type.indexOf('image')===-1?false:true;
+				window.URL=window.URL||window.webkitURL;
+				if(window.URL.createObjectURL){
+					var img='<img'+'\t'+'src='+window.URL.createObjectURL(files[i])+'\t'+'/>'+'</li>';
+				}else{
+					var read=new FileReader();
+					read.onload=function(e){
+						var img='<img'+'\t'+'src='+e.target.result+'\t'+'/>'+'</li>';
+					}
+					read.readAsDataURL(files[i]);
+				}
+				document.querySelector('.drag_list ul').innerHTML+=this.createNode(files[i],isImg,img);
+			}
+		},
+		createNode:function(file,status,img){
+			var type=file.type?file.type:'N/A'
+			var li='<li>'+'<p>'+'<span>'+'文件名字：'+'</span>'+'<em>'+file.name+'</em>'+
+				'<span>'+'\t\t'+'文件大小：'+'</span>'+'<em>'+file.size+'</em>'+
+				'<span>'+'\t\t'+'文件类型：'+'</span>'+'<em>'+type+'</em>'+'</p>';
+			if(status){
+				li=li+img;
+			}
+			return li;
+		},
+		tip:function(){
+			this.box.style.backgroundColor='#cecece';
+		}
+	};
+	var k=new drag();
+</script>
+</body>
+</html>
+
